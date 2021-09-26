@@ -27,7 +27,7 @@ spec:
     name: my-gitops
   kubernetesVersion: "1.20"
   workerNodeGroupConfigurations:
-  - count: 3
+  - count: 2
     machineGroupRef:
       kind: VSphereMachineConfig
       name: dev-cluster
