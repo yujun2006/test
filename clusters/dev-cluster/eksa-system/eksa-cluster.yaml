@@ -1,0 +1,111 @@
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: Cluster
+metadata:
+  creationTimestamp: null
+  name: dev-cluster
+spec:
+  clusterNetwork:
+    cni: cilium
+    pods:
+      cidrBlocks:
+      - 192.168.0.0/16
+    services:
+      cidrBlocks:
+      - 10.96.0.0/12
+  controlPlaneConfiguration:
+    count: 3
+    endpoint:
+      host: 192.168.102.234
+    machineGroupRef:
+      kind: VSphereMachineConfig
+      name: dev-cluster-cp
+  datacenterRef:
+    kind: VSphereDatacenterConfig
+    name: dev-cluster
+  gitOpsRef:
+    kind: GitOpsConfig
+    name: my-gitops
+  kubernetesVersion: "1.20"
+  workerNodeGroupConfigurations:
+  - count: 3
+    machineGroupRef:
+      kind: VSphereMachineConfig
+      name: dev-cluster
+status: {}
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: VSphereDatacenterConfig
+metadata:
+  creationTimestamp: null
+  name: dev-cluster
+spec:
+  datacenter: VxRail-Datacenter
+  insecure: false
+  network: /VxRail-Datacenter/network/Management Network-672d4a7f-e96a-4635-bd58-1eed925c090a
+  server: 192.168.102.201
+  thumbprint: E5:E7:CB:01:F7:2E:FB:7B:52:0B:9F:E9:C8:98:04:17:13:6D:1B:AB
+status: {}
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: VSphereMachineConfig
+metadata:
+  annotations:
+    anywhere.eks.amazonaws.com/control-plane: "true"
+  creationTimestamp: null
+  name: dev-cluster-cp
+spec:
+  datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-672d4a7f-e96a-4635-bd58-1eed925c090a
+  diskGiB: 25
+  folder: /VxRail-Datacenter/vm/dev-cluster
+  memoryMiB: 8192
+  numCPUs: 2
+  osFamily: ubuntu
+  resourcePool: /VxRail-Datacenter/host/VxRail-Virtual-SAN-Cluster-672d4a7f-e96a-4635-bd58-1eed925c090a/Resources
+  template: /VxRail-Datacenter/vm/ubuntu-2004-kube-v1.20.7
+  users:
+  - name: capv
+    sshAuthorizedKeys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPRFoBCtyYQ0kopKP2lLh47EcLaBDDp5KMQ9YOz4hSq//XnOJCb8vxmtnX1TUiL7XIbUEAws+2NDdV0AMXPMVwrgCuZ7U4vGgFamtpgT31dYh7AUKIPP1RXe/B3/5vSbUvY0PHVwdeXxEgIRFxUa6WJYau1JxCf+15D2xo8DUZbDo33ahqcm2+oy2M4PGsWEuEKLbnXqfn2YGtBIJvXpnwhPoq98WJY8Hiw6+rS3yezOxwdsTNVeJJUx/jgFE/6DTu7OybY3k6jkp7sV0L2Fe37Z4rZcc2lacN8VXYtyryS7OA5r35PP23oxW6SrqNDdAhZa4LAVKx0+zUnjggR9qi+sQcMLMRew7lNjCUZvHXlwpdUdue+9i4f0bKeo0fWwq0eveR+EqIQv8gOsq3Y5VY/eQfTA6qkewh8lzoYx2Weu48JvC7PWZKC3zK9ac2uXM/sYs5hBOuilHT/PGiE2R7Haq/LafMLrBALmYRa/A4cNQKLKDDix8vcsThuJU0e9E=
+status: {}
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: VSphereMachineConfig
+metadata:
+  creationTimestamp: null
+  name: dev-cluster
+spec:
+  datastore: /VxRail-Datacenter/datastore/VxRail-Virtual-SAN-Datastore-672d4a7f-e96a-4635-bd58-1eed925c090a
+  diskGiB: 25
+  folder: /VxRail-Datacenter/vm/dev-cluster
+  memoryMiB: 8192
+  numCPUs: 2
+  osFamily: ubuntu
+  resourcePool: /VxRail-Datacenter/host/VxRail-Virtual-SAN-Cluster-672d4a7f-e96a-4635-bd58-1eed925c090a/Resources
+  template: /VxRail-Datacenter/vm/ubuntu-2004-kube-v1.20.7
+  users:
+  - name: capv
+    sshAuthorizedKeys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDPRFoBCtyYQ0kopKP2lLh47EcLaBDDp5KMQ9YOz4hSq//XnOJCb8vxmtnX1TUiL7XIbUEAws+2NDdV0AMXPMVwrgCuZ7U4vGgFamtpgT31dYh7AUKIPP1RXe/B3/5vSbUvY0PHVwdeXxEgIRFxUa6WJYau1JxCf+15D2xo8DUZbDo33ahqcm2+oy2M4PGsWEuEKLbnXqfn2YGtBIJvXpnwhPoq98WJY8Hiw6+rS3yezOxwdsTNVeJJUx/jgFE/6DTu7OybY3k6jkp7sV0L2Fe37Z4rZcc2lacN8VXYtyryS7OA5r35PP23oxW6SrqNDdAhZa4LAVKx0+zUnjggR9qi+sQcMLMRew7lNjCUZvHXlwpdUdue+9i4f0bKeo0fWwq0eveR+EqIQv8gOsq3Y5VY/eQfTA6qkewh8lzoYx2Weu48JvC7PWZKC3zK9ac2uXM/sYs5hBOuilHT/PGiE2R7Haq/LafMLrBALmYRa/A4cNQKLKDDix8vcsThuJU0e9E=
+status: {}
+
+---
+apiVersion: anywhere.eks.amazonaws.com/v1alpha1
+kind: GitOpsConfig
+metadata:
+  creationTimestamp: null
+  name: my-gitops
+spec:
+  flux:
+    github:
+      branch: dev
+      clusterConfigPath: clusters/dev-cluster
+      fluxSystemNamespace: flux-system
+      owner: yujun2006
+      personal: true
+      repository: test
+status: {}
+
+---
