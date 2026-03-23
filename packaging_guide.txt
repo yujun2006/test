@@ -1,0 +1,119 @@
+# 安蒂克服务管理系统 - Windows 打包步骤
+# ==========================================
+# 环境要求: Windows 11, Python 3.12, WSL (可选，以下命令均可在 Windows PowerShell 中直接运行)
+
+# ===== 1. 准备构建目录 =====
+mkdir C:\Users\yuj46\Desktop\andike_build
+mkdir C:\Users\yuj46\Desktop\andike_build\assets\fonts
+copy app.py C:\Users\yuj46\Desktop\andike_build\
+copy requirements.txt C:\Users\yuj46\Desktop\andike_build\
+copy assets\fonts\NotoSansSC.ttf C:\Users\yuj46\Desktop\andike_build\assets\fonts\
+
+# ===== 2. 安装依赖 =====
+pip install flet
+pip install flet-desktop
+pip install pyinstaller
+
+# ===== 3. 修改 app.py (支持打包后正确定位数据库) =====
+# 在 app.py 顶部, 将:
+#   import os
+#   DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "appointments.db")
+# 改为:
+#   import os
+#   import sys
+#   if getattr(sys, 'frozen', False):
+#       _BASE_DIR = os.path.dirname(sys.executable)
+#   else:
+#       _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+#   DB_PATH = os.path.join(_BASE_DIR, "appointments.db")
+
+# ===== 4. 创建 build.py 构建脚本 =====
+# 文件内容见下方 build.py 部分
+
+# ===== 5. 执行打包 =====
+cd C:\Users\yuj46\Desktop\andike_build
+python build.py
+
+# ===== 6. 打包输出 =====
+# 输出目录: C:\Users\yuj46\Desktop\andike_build\dist\安蒂克服务管理系统\
+# 主程序:   安蒂克服务管理系统.exe
+# 大小:     约 167MB
+
+# ===== 7. 压缩为 zip 方便分发 =====
+Compress-Archive -Path "C:\Users\yuj46\Desktop\andike_build\dist\安蒂克服务管理系统" -DestinationPath "C:\Users\yuj46\Desktop\安蒂克服务管理系统.zip" -Force
+
+# ===== 8. 验证 =====
+Start-Process "C:\Users\yuj46\Desktop\andike_build\dist\安蒂克服务管理系统\安蒂克服务管理系统.exe"
+Get-Process | Where-Object { $_.ProcessName -like '*flet*' -or $_.ProcessName -like '*安蒂克*' }
+
+
+# =============================================================================
+# build.py 完整内容
+# =============================================================================
+# """
+# Build script for packaging the appointment management app with PyInstaller.
+# Run on Windows: python build.py
+# """
+#
+# import os
+# import sys
+# import subprocess
+# import shutil
+# from pathlib import Path
+#
+# APP_NAME = "安蒂克服务管理系统"
+# MAIN_SCRIPT = "app.py"
+#
+# def find_package_path(package_name):
+#     """Find the installed package directory."""
+#     import importlib
+#     mod = importlib.import_module(package_name)
+#     return os.path.dirname(mod.__file__)
+#
+# def main():
+#     build_dir = os.path.dirname(os.path.abspath(__file__))
+#     os.chdir(build_dir)
+#
+#     flet_desktop_path = find_package_path("flet_desktop")
+#     flet_desktop_app = os.path.join(flet_desktop_path, "app")
+#     flet_path = find_package_path("flet")
+#
+#     cmd = [
+#         sys.executable, "-m", "PyInstaller",
+#         "--noconfirm",
+#         "--onedir",
+#         "--windowed",
+#         f"--name={APP_NAME}",
+#         f"--add-data={flet_desktop_app}{os.pathsep}flet_desktop/app",
+#         f"--add-data=assets{os.pathsep}assets",
+#         "--hidden-import=flet",
+#         "--hidden-import=flet_desktop",
+#         "--hidden-import=flet.auth",
+#         "--hidden-import=flet.canvas",
+#         "--hidden-import=flet.controls",
+#         "--hidden-import=flet.messaging",
+#         "--hidden-import=flet.pubsub",
+#         "--hidden-import=flet.security",
+#         "--hidden-import=flet.utils",
+#         "--hidden-import=flet.fastapi",
+#         "--hidden-import=flet.testing",
+#         "--hidden-import=msgpack",
+#         "--hidden-import=oauthlib",
+#         "--hidden-import=repath",
+#         "--hidden-import=httpx",
+#         "--hidden-import=httpcore",
+#         "--hidden-import=anyio",
+#         "--collect-all=flet",
+#         "--collect-all=flet_desktop",
+#         MAIN_SCRIPT,
+#     ]
+#
+#     result = subprocess.run(cmd, capture_output=False)
+#     if result.returncode == 0:
+#         print("Build successful!")
+#     else:
+#         print(f"Build failed with code {result.returncode}")
+#         sys.exit(1)
+#
+# if __name__ == "__main__":
+#     main()
